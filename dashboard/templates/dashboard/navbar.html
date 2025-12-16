@@ -1,0 +1,193 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EPI Detection{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: 'hsl(24 96% 53%)',
+                        background: 'hsl(0 0% 100%)',
+                        foreground: 'hsl(222.2 84% 4.9%)',
+                        muted: 'hsl(210 40% 96.1%)',
+                        'primary-foreground': 'hsl(210 40% 98%)',
+                    },
+                    borderRadius: {
+                        lg: '0.5rem',
+                        md: 'calc(0.5rem - 2px)',
+                        sm: 'calc(0.5rem - 4px)',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://unpkg.com/lucide-icons/dist/umd/lucide.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'index.css' %}">
+    {% block styles %}{% endblock %}
+</head>
+<body class="bg-background text-foreground min-h-screen flex flex-col">
+    <nav class="border-b bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center gap-2">
+                        <img src="{% static 'pages/images/logo-projeto.svg' %}" alt="SafetyAI Logo" class="h-10 w-auto" />                   
+                    </a>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                   
+                    <div class="relative" x-data="{ isOpen: false }">
+                        <button 
+                            @mouseenter="isOpen = true"
+                            class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium gap-2
+                            {% if 'upload' in request.path %}
+                                bg-primary/10 text-primary
+                            {% else %}
+                                text-gray-600 hover:bg-gray-100
+                            {% endif %}"
+                        >
+                            <i data-lucide="upload" class="h-4 w-4"></i>
+                            Upload
+                            <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                        </button>
+                        
+                        <div 
+                            @mouseenter="isOpen = true"
+                            @mouseleave="isOpen = false"
+                            x-show="isOpen"
+                            class="absolute right-0 mt-1 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
+                        >
+                            <div class="py-1">
+                                {% url 'dashboard_upload:upload' type='upload-imagem' as upload_imagem_url %}
+
+                                <a 
+                                    href="{{ upload_imagem_url }}"
+                                    class="block px-4 py-2 text-sm hover:bg-gray-100
+                                    {% if request.path == upload_imagem_url %}
+                                        bg-primary/10 text-primary
+                                    {% else %}
+                                        text-gray-700
+                                    {% endif %}"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="image" class="h-4 w-4"></i>
+                                        Upload de Imagem
+                                    </div>
+                                </a>
+                                
+                                {% url 'dashboard_upload:upload' type='upload-video' as upload_video_url%}
+
+                                <a 
+                                    href="{{ upload_video_url }}"
+                                    class="block px-4 py-2 text-sm hover:bg-gray-100
+                                    {% if request.path == upload_video_url %}
+                                        bg-primary/10 text-primary
+                                    {% else %}
+                                        text-gray-700
+                                    {% endif %}"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="video" class="h-4 w-4"></i>
+                                        Upload de Vídeo
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'dashboard_home:home' %}" class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium gap-2
+                    {% if request.resolver_match.view_name == 'dashboard_home:home' %}
+                        bg-primary/10 text-primary
+                    {% else %}
+                        text-gray-600 hover:bg-gray-100
+                    {% endif %}
+                    ">
+                        <i data-lucide="home" class="h-4 w-4"></i>
+                        Dashboard
+                    </a>
+
+                    <a href="/relatorios" class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium gap-2
+                    {% if request.endpoint == 'relatorios' %}
+                        bg-primary/10 text-primary
+                    {% else %}
+                        text-gray-600 hover:bg-gray-100
+                    {% endif %}
+                    ">
+                        <i data-lucide="file-bar-chart" class="h-4 w-4"></i>
+                        Relatórios
+                    </a>
+                </div>
+                
+                <div class="flex items-center">
+                    <div class="relative" x-data="{ isOpen: false }">
+                        <button 
+                            @click="isOpen = !isOpen"
+                            class="flex items-center focus:outline-none"
+                            type="button"
+                        >
+                            <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center">
+                                <span class="text-sm font-medium">{{ current_user.nome|first|upper }}</span>
+                            </div>
+                        </button>
+                        
+                        <div 
+                            x-show="isOpen"
+                            @click.away="isOpen = false"
+                            class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
+                            x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="transform opacity-0 scale-95"
+                            x-transition:enter-end="transform opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-75"
+                            x-transition:leave-start="transform opacity-100 scale-100"
+                            x-transition:leave-end="transform opacity-0 scale-95"
+                        >
+                            <div class="py-1">
+                                <div class="px-4 py-2 text-sm text-gray-700 border-b">
+                                    <p class="font-medium">{{ current_user.nome }} {{ current_user.sobrenome }}</p>
+                                    <p class="text-xs text-gray-500 truncate">{{ current_user.email }}</p>
+                                </div>
+                                
+                                <a href="{% url 'dashboard_minhas_deteccoes:deteccoes' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {% if request.endpoint == 'minhas_deteccoes' %}bg-primary/10 text-primary{% endif %}">
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="list" class="h-4 w-4"></i>
+                                        Minhas Detecções
+                                    </div>
+                                </a>
+                                
+                                <form action="{% url 'accounts:logout' %}" method="post" class="block">
+                                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <div class="flex items-center gap-2">
+                                            <i data-lucide="log-out" class="h-4 w-4"></i>
+                                            Logout
+                                        </div>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex items-center justify-center">
+        <div class="w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
