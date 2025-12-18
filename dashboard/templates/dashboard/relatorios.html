@@ -1,1 +1,1541 @@
-<h1>Relatorios</h1>
+{% extends "dashboard/navbar.html" %}
+
+{% load static %}
+
+{% block title %}Relatórios - EPI Detection{% endblock %}
+
+{% block styles %}
+<style>
+    .chart-selection-item {
+        transition: all 0.2s ease;
+    }
+    
+    .chart-selection-item.disabled {
+        opacity: 0.5;
+    }
+    
+    .report-logo {
+        max-height: 50px;
+        width: auto;
+    }
+
+    .fabin-ifma-logo {
+        max-height: 100px;
+        width: auto;
+    }
+    
+    .pdf-loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.9);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        backdrop-filter: blur(3px);
+    }
+    
+    .pdf-loading-text {
+        margin-top: 20px;
+        font-size: 18px;
+        font-weight: bold;
+        color: #4361ee;
+    }
+    
+    .spinner {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #4361ee;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 2s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+        .date-filter-dropdown {
+        position: absolute;
+        z-index: 100;
+        width: 320px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border: 1px solid #e2e8f0;
+        padding: 16px;
+        display: none;
+        top: 100%;
+        left: 0;
+        margin-top: 8px;
+    }
+    
+    .date-filter-container {
+        position: relative;
+    }
+    
+    .date-filter-dropdown.active {
+        display: block;
+    }
+    
+    .date-presets {
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .date-preset-btn {
+        display: block;
+        width: 100%;
+        text-align: left;
+        padding: 8px 12px;
+        margin-bottom: 4px;
+        border-radius: 4px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+    
+    .date-preset-btn:hover {
+        background-color: #f7fafc;
+        color: #4361ee;
+    }
+    
+    .date-inputs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+    
+    .date-input-group {
+        flex: 1;
+    }
+    
+    .date-input-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        margin-bottom: 4px;
+        color: #4a5568;
+    }
+    
+    .date-input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+    
+    .date-input:focus {
+        border-color: #4361ee;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+    }
+    
+    .date-filter-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .date-filter-btn {
+        flex: 1;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: center;
+    }
+    
+    .date-filter-apply {
+        background-color: #4361ee;
+        color: white;
+        border: none;
+    }
+    
+    .date-filter-apply:hover {
+        background-color: #3a56d4;
+    }
+    
+    .date-filter-clear {
+        background-color: white;
+        color: #4a5568;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .date-filter-clear:hover {
+        background-color: #f7fafc;
+        border-color: #cbd5e0;
+    }
+    
+    .stats-card {
+        border-radius: 8px;
+        padding: 16px;
+        transition: all 0.3s;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stats-card-purple {
+        background-color: #EDE9FE;
+    }
+    
+    .stats-card-green {
+        background-color: #DCFCE7;
+    }
+    
+    .stats-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    
+    .stats-card-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: #4B5563;
+    }
+    
+    .stats-card-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .stats-card-purple .stats-card-icon {
+        background-color: #DDD6FE;
+        color: #7C3AED;
+    }
+    
+    .stats-card-green .stats-card-icon {
+        background-color: #A7F3D0;
+        color: #059669;
+    }
+    
+    .stats-card-value {
+        font-size: 24px;
+        font-weight: 700;
+    }
+    
+    .stats-card-purple .stats-card-value {
+        color: #7C3AED;
+    }
+    
+    .stats-card-green .stats-card-value {
+        color: #059669;
+    }
+    
+    .chart-container {
+        background-color: white;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        padding: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s;
+    }
+    
+    .chart-container:hover {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .chart-selection-container {
+        background-color: white;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        padding: 16px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    
+    .chart-selection-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #1F2937;
+    }
+    
+    .chart-selection-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 12px;
+    }
+    
+    .chart-selection-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .chart-toggle {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+    
+    .chart-toggle-label {
+        font-size: 14px;
+        cursor: pointer;
+    }
+    
+    .report-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .report-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1F2937;
+        margin-bottom: 4px;
+    }
+    
+    .report-meta {
+        font-size: 13px;
+        color: #6B7280;
+        margin-bottom: 2px;
+    }
+    
+    .report-section {
+        margin-bottom: 24px;
+    }
+    
+    .report-section-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1F2937;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .charts-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    
+    @media (min-width: 768px) {
+        .charts-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    .date-filter-btn.active {
+        background-color: #EEF2FF;
+        color: #4361ee;
+        border-color: #C7D2FE;
+    }
+    
+    .custom-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    .custom-checkbox input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+    }
+    
+    .checkmark {
+        height: 20px;
+        width: 20px;
+        background-color: #fff;
+        border: 2px solid #d1d5db;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+    
+    .custom-checkbox:hover .checkmark {
+        border-color: #4361ee;
+    }
+    
+    .custom-checkbox input:checked ~ .checkmark {
+        background-color: #4361ee;
+        border-color: #4361ee;
+    }
+    
+    .checkmark:after {
+        content: "";
+        display: none;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+    }
+    
+    .custom-checkbox input:checked ~ .checkmark:after {
+        display: block;
+    }
+
+    .media-filter-container {
+        position: relative;
+    }
+
+    #media-type-filter {
+        appearance: auto;
+        background-color: white;
+        cursor: pointer;
+    }
+
+    #media-type-filter:focus {
+        border-color: #4361ee;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-8 max-w-7xl">
+    <!-- Loading indicator for PDF generation -->
+    <div id="pdf-loading" class="pdf-loading" style="display: none;">
+        <div class="spinner"></div>
+        <div class="pdf-loading-text">Gerando PDF, por favor aguarde...</div>
+    </div>
+
+    <!-- Page Header -->
+    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">Relatórios</h1>
+            <p class="text-muted-foreground">Visualize e exporte relatórios detalhados sobre detecções de EPIs</p>
+        </div>
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 no-print">
+            <!-- Date Filter Button - CORRIGIDO -->
+            <div class="date-filter-container">
+                <button id="date-filter-btn" class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium gap-2 text-gray-600 hover:bg-gray-100 border no-print">
+                    <i data-lucide="calendar" class="h-4 w-4"></i>
+                    <span id="date-filter-text">Filtrar por Data</span>
+                </button>
+                
+                <!-- Date Filter Dropdown (Improved) -->
+                <div id="date-filter-dropdown" class="date-filter-dropdown">
+                    <h4 class="text-sm font-medium mb-3">Filtrar por período</h4>
+                    
+                    <!-- Date Presets -->
+                    <div class="date-presets">
+                        <button type="button" class="date-preset-btn" data-days="7">Últimos 7 dias</button>
+                        <button type="button" class="date-preset-btn" data-days="30">Últimos 30 dias</button>
+                        <button type="button" class="date-preset-btn" data-days="90">Últimos 90 dias</button>
+                        <button type="button" class="date-preset-btn" data-days="365">Último ano</button>
+                    </div>
+                    
+                    <!-- Custom Date Range -->
+                    <div class="date-inputs">
+                        <div class="date-input-group">
+                            <label for="start-date" class="date-input-label">Data inicial</label>
+                            <input type="date" id="start-date" class="date-input">
+                        </div>
+                        
+                        <div class="date-input-group">
+                            <label for="end-date" class="date-input-label">Data final</label>
+                            <input type="date" id="end-date" class="date-input">
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="date-filter-actions">
+                        <button id="clear-date-filter" class="date-filter-btn date-filter-clear">
+                            Limpar
+                        </button>
+                        <button id="apply-date-filter" class="date-filter-btn date-filter-apply">
+                            Aplicar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Media Type Filter -->
+            <div class="media-filter-container">
+                <select id="media-type-filter" class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium gap-2 text-gray-600 hover:bg-gray-100 border no-print">
+                    <option value="all">Todos os tipos</option>
+                    <option value="image">Apenas imagens</option>
+                    <option value="video">Apenas vídeos</option>
+                </select>
+            </div>
+            
+            <!-- Export PDF Button -->
+            <button id="export-pdf-btn" class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium gap-2 bg-primary text-white hover:bg-primary/90 no-print">
+                <i data-lucide="download" class="h-4 w-4"></i>
+                Exportar PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Chart Selection Section (Improved) - CORRIGIDO -->
+    <div class="chart-selection-container no-print">
+        <h3 class="chart-selection-title">Selecione os gráficos para o relatório</h3>
+        
+        <div class="chart-selection-grid">
+            <label class="custom-checkbox">
+                <input type="checkbox" id="stats-cards-toggle" class="chart-toggle" checked>
+                <span class="checkmark"></span>
+                <span class="chart-toggle-label">Estatísticas de Upload</span>
+            </label>
+            
+            <label class="custom-checkbox">
+                <input type="checkbox" id="bar-chart-toggle" class="chart-toggle" checked>
+                <span class="checkmark"></span>
+                <span class="chart-toggle-label">Quantidade de Classes</span>
+            </label>
+            
+            <label class="custom-checkbox">
+                <input type="checkbox" id="pie-chart-toggle" class="chart-toggle" checked>
+                <span class="checkmark"></span>
+                <span class="chart-toggle-label">Distribuição das Classes</span>
+            </label>
+            
+            <label class="custom-checkbox">
+                <input type="checkbox" id="time-series-toggle" class="chart-toggle" checked>
+                <span class="checkmark"></span>
+                <span class="chart-toggle-label">Evolução por Data</span>
+            </label>
+        </div>
+    </div>
+
+    <!-- Report Preview Section (Improved) -->
+    <div id="report-content" class="bg-white p-6 rounded-lg border shadow-sm">
+        <!-- Report Header -->
+        <div class="report-header">
+            <div>
+                <h2 class="report-title">Relatório de Detecção de EPIs</h2>
+
+                {% load tz %}
+
+                <p class="report-meta">Gerado em: <span id="report-date">{% now 'd/m/Y H:i' %}</span></p>
+                <p class="report-meta">Usuário: {{ current_user.nome }} {{ current_user.sobrenome }}</p>
+                {% if detection_stats.date_filter.is_custom %}
+                <p class="report-meta">Período: {{ detection_stats.date_filter.start_date|default:'' }} a {{ detection_stats.date_filter.end_date|default:'' }}</p>
+                {% endif %}
+            </div>
+            <img src="{% static 'pages/images/LOGO_fábrica.png' %}" alt="LOGO FÁBRICA" class="fabin-ifma-logo" />
+            <img src="{% static 'pages/images/ifma_gra.png' %}" alt="IFMA Logo" class="fabin-ifma-logo" />
+            <img src="{% static 'pages/images/logo-projeto.svg' %}" alt="EPI DETECT LOGO" class="report-logo" />
+        </div>
+
+        <!-- Stats Cards Section (Improved) -->
+        <div id="stats-cards-section" class="report-section">
+            <h3 class="report-section-title">Estatísticas de Upload</h3>
+            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+                <div class="stats-card stats-card-purple">
+                    <div class="stats-card-header">
+                        <span class="stats-card-title">Uploads de Imagens</span>
+                        <div class="stats-card-icon">
+                            <i data-lucide="image" class="h-4 w-4"></i>
+                        </div>
+                    </div>
+                    <div class="stats-card-value">{{ detection_stats.total_images|default:0 }}</div>
+                </div>
+
+                <div class="stats-card stats-card-green">
+                    <div class="stats-card-header">
+                        <span class="stats-card-title">Uploads de Vídeos</span>
+                        <div class="stats-card-icon">
+                            <i data-lucide="video" class="h-4 w-4"></i>
+                        </div>
+                    </div>
+                    <div class="stats-card-value">{{ detection_stats.video_count|default:0 }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Grid (Improved) -->
+        <div class="charts-grid">
+            <!-- Bar Chart Section -->
+            <div id="bar-chart-section" class="report-section">
+                <h3 class="report-section-title">Quantidade de Classes Detectadas</h3>
+                <div class="chart-container" style="height: 300px;">
+                    <canvas id="classesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Pie Chart Section -->
+            <div id="pie-chart-section" class="report-section">
+                <h3 class="report-section-title">Distribuição dos Classes</h3>
+                <div class="chart-container" style="height: 300px;">
+                    <canvas id="distributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Time Series Chart Section (Full Width) -->
+        <div id="time-series-section" class="report-section">
+            <h3 class="report-section-title">Evolução da Detecção de Classes por Data</h3>
+            <div class="chart-container" style="height: 350px;">
+                <canvas id="timeSeriesChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ detection_stats.detected_classes|json_script:"detected-classes-data" }}
+{{ detection_stats.time_series_data|json_script:"time-series-data" }}
+{{ detection_stats.date_filter|json_script:"date_filter" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+    const detectedClasses = JSON.parse(
+        document.getElementById('detected-classes-data').textContent
+    );
+    const timeSeriesData = JSON.parse(
+        document.getElementById('time-series-data').textContent
+    );
+    const dateFilter = JSON.parse(
+        document.getElementById('date-filter').textContent
+    );
+    
+    const colorPalette = [
+        '#4361ee', '#3a0ca3', '#7209b7', '#f72585', '#4cc9f0', 
+        '#4895ef', '#560bad', '#f15bb5', '#00bbf9', '#00f5d4'
+    ];
+    
+    let classesChart, distributionChart, timeSeriesChart;
+    
+    function initCharts() {
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 1000
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        boxWidth: 15,
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            }
+        };
+        
+        const classesCtx = document.getElementById('classesChart');
+        classesChart = new Chart(classesCtx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(detectedClasses),
+                datasets: [{
+                    label: 'Quantidade de Detecções',
+                    data: Object.values(detectedClasses),
+                    backgroundColor: Object.keys(detectedClasses).map((_, index) => colorPalette[index % colorPalette.length]),
+                    borderWidth: 0,
+                    borderRadius: 6,
+                    maxBarThickness: 50
+                }]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Quantidade',
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            display: true,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            },
+                            precision: 0
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Objeto',
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        cornerRadius: 6,
+                        titleFont: {
+                            size: 13
+                        },
+                        bodyFont: {
+                            size: 12
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.label}: ${context.raw} detecções`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        const distributionCtx = document.getElementById('distributionChart');
+        distributionChart = new Chart(distributionCtx, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(detectedClasses),
+                datasets: [{
+                    data: Object.values(detectedClasses),
+                    backgroundColor: Object.keys(detectedClasses).map((_, index) => colorPalette[index % colorPalette.length]),
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 15,
+                            padding: 15,
+                            font: {
+                                size: 11
+                            },
+                            generateLabels: function(chart) {
+                                const data = chart.data;
+                                if (data.labels.length && data.datasets.length) {
+                                    const dataset = data.datasets[0];
+                                    const total = dataset.data.reduce((acc, data) => acc + data, 0);
+                                    
+                                    return data.labels.map((label, i) => {
+                                        const value = dataset.data[i];
+                                        const percentage = Math.round((value / total) * 100);
+                                        
+                                        return {
+                                            text: `${label} (${percentage}%)`,
+                                            fillStyle: dataset.backgroundColor[i],
+                                            strokeStyle: dataset.borderColor[i],
+                                            lineWidth: dataset.borderWidth,
+                                            hidden: isNaN(dataset.data[i]) || chart.getDatasetMeta(0).data[i].hidden,
+                                            index: i
+                                        };
+                                    });
+                                }
+                                return [];
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        cornerRadius: 6,
+                        titleFont: {
+                            size: 13
+                        },
+                        bodyFont: {
+                            size: 12
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const value = context.raw;
+                                const percentage = Math.round((value / total) * 100);
+                                return `${context.label}: ${percentage}% (${value} detecções)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        const timeSeriesCtx = document.getElementById('timeSeriesChart');
+        timeSeriesChart = new Chart(timeSeriesCtx, {
+            type: 'line',
+            data: {
+                labels: timeSeriesData.dates,
+                datasets: [
+                    {
+                        label: 'Classes Detectadas',
+                        data: timeSeriesData.detections,
+                        borderColor: '#4361ee',
+                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: '#4361ee',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Uploads de Imagens',
+                        data: timeSeriesData.uploads,
+                        borderColor: '#f72585',
+                        backgroundColor: 'rgba(247, 37, 133, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: '#f72585',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }
+                ]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Quantidade',
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            display: true,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            },
+                            precision: 0
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Data',
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            boxWidth: 15,
+                            padding: 10,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        cornerRadius: 6,
+                        titleFont: {
+                            size: 13
+                        },
+                        bodyFont: {
+                            size: 12
+                        },
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
+                }
+            }
+        });
+    }
+    
+    function updateChartVisibility() {
+        const statsCardsVisible = document.getElementById('stats-cards-toggle').checked;
+        const barChartVisible = document.getElementById('bar-chart-toggle').checked;
+        const pieChartVisible = document.getElementById('pie-chart-toggle').checked;
+        const timeSeriesVisible = document.getElementById('time-series-toggle').checked;
+        
+        const statsSection = document.getElementById('stats-cards-section');
+        const barSection = document.getElementById('bar-chart-section');
+        const pieSection = document.getElementById('pie-chart-section');
+        const timeSeriesSection = document.getElementById('time-series-section');
+        
+        if (statsSection) {
+            statsSection.style.display = statsCardsVisible ? 'block' : 'none';
+        }
+        
+        if (barSection) {
+            barSection.style.display = barChartVisible ? 'block' : 'none';
+        }
+        
+        if (pieSection) {
+            pieSection.style.display = pieChartVisible ? 'block' : 'none';
+        }
+        
+        if (timeSeriesSection) {
+            timeSeriesSection.style.display = timeSeriesVisible ? 'block' : 'none';
+        }
+        
+        const preferences = {
+            stats: statsCardsVisible,
+            bar: barChartVisible,
+            pie: pieChartVisible,
+            timeSeries: timeSeriesVisible
+        };
+        
+        localStorage.setItem('reportChartPreferences', JSON.stringify(preferences));
+        
+        setTimeout(() => {
+            window.dispatchEvent(new Event('resize'));
+            
+            if (barChartVisible && classesChart) classesChart.resize();
+            if (pieChartVisible && distributionChart) distributionChart.resize();
+            if (timeSeriesVisible && timeSeriesChart) timeSeriesChart.resize();
+        }, 100);
+    }
+    
+    async function generatePDF() {
+    try {
+        document.getElementById('pdf-loading').style.display = 'flex';
+        
+        const totalImages = parseInt(document.querySelector('.stats-card-purple .stats-card-value').textContent);
+        const totalVideos = parseInt(document.querySelector('.stats-card-green .stats-card-value').textContent);
+        
+        const objectClasses = Object.keys(detectedClasses);
+        const objectValues = Object.values(detectedClasses);
+        const totalObjects = objectValues.reduce((a, b) => a + b, 0);
+        
+        const dates = timeSeriesData.dates;
+        const detections = timeSeriesData.detections;
+        const uploads = timeSeriesData.uploads;
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
+        
+        const primaryColor = '#4361ee';
+        const secondaryColor = '#f72585';
+        const textColor = '#1F2937';
+        const lightTextColor = '#6B7280';
+        
+        const margin = 15;
+        const pageWidth = 210;
+        const contentWidth = pageWidth - (margin * 2);
+        
+        function loadImage(src) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.onload = () => resolve(img);
+                img.onerror = () => {
+                    console.warn(`Não foi possível carregar a imagem: ${src}`);
+                    resolve(null);
+                };
+                img.src = src;
+            });
+        }
+
+        function calculateAspectRatioFit(srcWidth, srcHeight, maxWidth, maxHeight) {
+            const ratio = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
+            return { width: srcWidth * ratio, height: srcHeight * ratio };
+        }
+
+        function imageToDataURL(img, format = 'png') {
+            if (!img) return null;
+            
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = img.width;
+            canvas.height = img.height;
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.drawImage(img, 0, 0);
+            
+            try {
+                return canvas.toDataURL(`image/${format}`);
+            } catch (e) {
+                console.warn('Erro ao converter imagem:', e);
+                return null;
+            }
+        }
+
+        const images = await Promise.all([
+            loadImage("{% static 'pages/images/ifma_gra.png' %}"),
+            loadImage("{% static 'pages/images/LOGO_fábrica.png' %}"),
+            loadImage("{% static 'pages/images/logo-projeto.svg' %}")
+        ]);
+        
+        const validImages = images.filter(img => img !== null);
+        const imageDataURLs = validImages.map(img => imageToDataURL(img, 'png'));
+        
+        function addHeaderWithLogos(doc) {
+            const headerY = margin;
+            const maxLogoHeight = 20; 
+            const maxLogoWidth = 40;  
+            const spacing = 15;       
+            
+            const totalAvailableWidth = contentWidth;
+            
+            let totalLogosWidth = 0;
+            const logoDimensions = [];
+            
+            validImages.forEach((img) => {
+                const dimensions = calculateAspectRatioFit(
+                    img.width, 
+                    img.height, 
+                    maxLogoWidth, 
+                    maxLogoHeight
+                );
+                logoDimensions.push(dimensions);
+                totalLogosWidth += dimensions.width;
+            });
+            
+            totalLogosWidth += spacing * (validImages.length - 1);
+            
+            let currentX = margin + (totalAvailableWidth - totalLogosWidth) / 2;
+            
+            const maxHeight = Math.max(...logoDimensions.map(dim => dim.height));
+            
+            validImages.forEach((img, index) => {
+                if (!imageDataURLs[index]) return;
+                
+                const dimensions = logoDimensions[index];
+                
+                const yOffset = (maxHeight - dimensions.height) / 2;
+                
+                doc.addImage(
+                    imageDataURLs[index], 
+                    'PNG', 
+                    currentX, 
+                    headerY + yOffset, 
+                    dimensions.width, 
+                    dimensions.height
+                );
+                
+                currentX += dimensions.width + spacing;
+            });
+            
+            return headerY + maxHeight + 10; 
+        }
+        
+        let yPos = addHeaderWithLogos(doc);
+        
+        doc.setFontSize(16); 
+        doc.setTextColor(textColor);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Relatório de Detecção de EPIs', margin, yPos);
+        yPos += 8; 
+        
+        doc.setFontSize(9); 
+        doc.setTextColor(lightTextColor);
+        doc.setFont('helvetica', 'normal');
+        
+        const currentDate = new Date().toLocaleString('pt-BR');
+        const userName = '{{ current_user.nome }} {{ current_user.sobrenome }}';
+        
+        doc.text(`Gerado em: ${currentDate}`, margin, yPos);
+        yPos += 4; 
+        doc.text(`Usuário: ${userName}`, margin, yPos);
+        yPos += 4; 
+        
+        if (dateFilter.is_custom) {
+            doc.text(`Período: ${dateFilter.start_date} a ${dateFilter.end_date}`, margin, yPos);
+            yPos += 4; 
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const mediaTypeParam = urlParams.get('media_type');
+        if (mediaTypeParam) {
+            const mediaTypeText = mediaTypeParam === 'image' ? 'Apenas imagens' : 
+                                 (mediaTypeParam === 'video' ? 'Apenas vídeos' : 'Todos os tipos');
+            doc.text(`Tipo de mídia: ${mediaTypeText}`, margin, yPos);
+            yPos += 4; 
+        }
+        
+        yPos += 3; 
+        doc.setDrawColor(220, 220, 220);
+        doc.line(margin, yPos, pageWidth - margin, yPos);
+        yPos += 8; 
+        
+        const includeStats = document.getElementById('stats-cards-toggle').checked;
+        const includeBarChart = document.getElementById('bar-chart-toggle').checked;
+        const includePieChart = document.getElementById('pie-chart-toggle').checked;
+        const includeTimeSeries = document.getElementById('time-series-toggle').checked;
+        
+        const standardTableLayout = {
+            margin: { left: margin, right: margin },
+            tableWidth: contentWidth,
+            styles: {
+                fontSize: 9,
+                cellPadding: 4,
+                overflow: 'linebreak'
+            },
+            headStyles: {
+                fillColor: primaryColor,
+                textColor: '#FFFFFF',
+                fontStyle: 'bold'
+            },
+            alternateRowStyles: {
+                fillColor: [248, 250, 252]
+            }
+        };
+
+        if (includeStats) {
+            doc.setFontSize(13);
+            doc.setTextColor(textColor);
+            doc.setFont('helvetica', 'bold');
+
+            const statsTitle = 'Estatísticas de Upload';
+            const statsTitleWidth = doc.getStringUnitWidth(statsTitle) * 13 / doc.internal.scaleFactor;
+            doc.text(statsTitle, margin + (contentWidth / 4) - (statsTitleWidth / 2), yPos);
+
+            const classesTitle = 'Quantidade de Classes Detectadas';
+            const classesTitleWidth = doc.getStringUnitWidth(classesTitle) * 13 / doc.internal.scaleFactor;
+            doc.text(classesTitle, margin + (contentWidth * 3 / 4) - (classesTitleWidth / 2), yPos);
+
+            const halfTableWidth = contentWidth / 2 - 5;
+
+            const statsData = [
+                ['Tipo', 'Quantidade'],
+                ['Uploads de Imagens', totalImages.toString()],
+                ['Uploads de Vídeos', totalVideos.toString()]
+            ];
+
+            doc.autoTable({
+                ...standardTableLayout,
+                tableWidth: halfTableWidth,
+                startY: yPos + 5,
+                head: [statsData[0]],
+                body: statsData.slice(1),
+                columnStyles: {
+                    0: { cellWidth: halfTableWidth * 0.6 },
+                    1: { cellWidth: halfTableWidth * 0.4, halign: 'center' }
+                }
+            });
+
+            if (includeBarChart) {
+                const objectsData = [
+                    ['Objeto', 'Quantidade', 'Percentual'],
+                    ...objectClasses.map((className, index) => {
+                        const value = objectValues[index];
+                        const percentage = ((value / totalObjects) * 100).toFixed(1) + '%';
+                        return [className, value.toString(), percentage];
+                    }),
+                    ['Total', totalObjects.toString(), '100%']
+                ];
+
+                doc.autoTable({
+                    ...standardTableLayout,
+                    tableWidth: halfTableWidth,
+                    startY: yPos + 5,
+                    margin: { left: margin + halfTableWidth + 10, right: margin },
+                    head: [objectsData[0]],
+                    body: objectsData.slice(1, -1),
+                    footStyles: {
+                        fillColor: [240, 240, 240],
+                        textColor: textColor,
+                        fontStyle: 'bold'
+                    },
+                    foot: [objectsData[objectsData.length - 1]],
+                    columnStyles: {
+                        0: { cellWidth: halfTableWidth * 0.4 },
+                        1: { cellWidth: halfTableWidth * 0.3, halign: 'center' },
+                        2: { cellWidth: halfTableWidth * 0.3, halign: 'center' }
+                    }
+                });
+            }
+
+            const lastTableEndY = Math.max(
+                doc.lastAutoTable ? doc.lastAutoTable.finalY : yPos + 5,
+                doc.previousAutoTable ? doc.previousAutoTable.finalY : yPos + 5
+            );
+
+            yPos = lastTableEndY + 15; 
+        }
+
+        if (includeTimeSeries) {
+            doc.setFontSize(13);
+            doc.setTextColor(textColor);
+            doc.setFont('helvetica', 'bold');
+
+            const timeSeriesTitle = 'Evolução da Detecção de Classes por Data';
+            const timeSeriesTitleWidth = doc.getStringUnitWidth(timeSeriesTitle) * 13 / doc.internal.scaleFactor;
+            doc.text(timeSeriesTitle, margin + (contentWidth / 2) - (timeSeriesTitleWidth / 2), yPos);
+
+            const timeSeriesTableData = [
+                ['Data', 'Classes Detectadas', 'Uploads']
+            ];
+
+            const filteredDates = [];
+            const filteredDetections = [];
+            const filteredUploads = [];
+
+            for (let i = 0; i < dates.length; i++) {
+                if (detections[i] > 0 || uploads[i] > 0) {
+                    filteredDates.push(dates[i]);
+                    filteredDetections.push(detections[i]);
+                    filteredUploads.push(uploads[i]);
+                }
+            }
+
+            if (filteredDates.length === 0) {
+                const startIndex = Math.max(0, dates.length - 5);
+                for (let i = startIndex; i < dates.length; i++) {
+                    filteredDates.push(dates[i]);
+                    filteredDetections.push(detections[i]);
+                    filteredUploads.push(uploads[i]);
+                }
+            }
+
+            for (let i = 0; i < filteredDates.length; i++) {
+                timeSeriesTableData.push([
+                    filteredDates[i],
+                    filteredDetections[i].toString(),
+                    filteredUploads[i].toString()
+                ]);
+            }
+
+            doc.autoTable({
+                ...standardTableLayout,
+                startY: yPos + 5,
+                head: [timeSeriesTableData[0]],
+                body: timeSeriesTableData.slice(1),
+                theme: 'grid',
+                columnStyles: {
+                    0: { cellWidth: contentWidth * 0.4 }, 
+                    1: { cellWidth: contentWidth * 0.3, halign: 'center' }, 
+                    2: { cellWidth: contentWidth * 0.3, halign: 'center' } 
+                }
+            });
+
+            yPos = doc.lastAutoTable.finalY + 15; 
+        }
+
+        doc.setFontSize(13);
+        doc.setTextColor(textColor);
+        doc.setFont('helvetica', 'bold');
+
+        const summaryTitle = 'Resumo Estatístico';
+        const summaryTitleWidth = doc.getStringUnitWidth(summaryTitle) * 13 / doc.internal.scaleFactor;
+        doc.text(summaryTitle, margin + (contentWidth / 2) - (summaryTitleWidth / 2), yPos);
+
+        const totalDetections = detections.reduce((a, b) => a + b, 0);
+        const avgDetectionsPerDay = (totalDetections / dates.length).toFixed(1);
+        const maxDetections = Math.max(...detections);
+        const maxDetectionDate = dates[detections.indexOf(maxDetections)];
+
+        const statsTextData = [
+            ['Métrica', 'Valor'],
+            ['Total de Classes Detectadas', totalDetections.toString()],
+            ['Média de Detecções por Dia', avgDetectionsPerDay],
+            ['Dia com Mais Detecções', `${maxDetectionDate} (${maxDetections})`],
+            ['Objeto Mais Detectado', `${objectClasses[objectValues.indexOf(Math.max(...objectValues))]} (${Math.max(...objectValues)})`]
+        ];
+
+        doc.autoTable({
+            ...standardTableLayout,
+            startY: yPos + 5,
+            head: [statsTextData[0]],
+            body: statsTextData.slice(1),
+            theme: 'grid',
+            columnStyles: {
+                0: { cellWidth: contentWidth * 0.5 },
+                1: { cellWidth: contentWidth * 0.5 }
+            }
+        });
+
+        const pageCount = doc.internal.getNumberOfPages();
+        
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(lightTextColor);
+            doc.text(`EPI Detection - Página ${i} de ${pageCount}`, margin, 290);
+            doc.text(`Gerado em: ${currentDate}`, pageWidth - margin - 50, 290, { align: 'right' });
+        }
+        
+        doc.save('relatorio-epi-detection.pdf');
+        document.getElementById('pdf-loading').style.display = 'none';
+        
+    } catch (error) {
+        console.error('Erro na geração do PDF:', error);
+        alert('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
+        
+        document.getElementById('pdf-loading').style.display = 'none';
+    }
+}
+    
+    function initDateFilter() {
+        const dateFilterBtn = document.getElementById('date-filter-btn');
+        const dateFilterDropdown = document.getElementById('date-filter-dropdown');
+        const applyDateFilterBtn = document.getElementById('apply-date-filter');
+        const clearDateFilterBtn = document.getElementById('clear-date-filter');
+        const startDateInput = document.getElementById('start-date');
+        const endDateInput = document.getElementById('end-date');
+        const dateFilterText = document.getElementById('date-filter-text');
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const startDateParam = urlParams.get('start_date') || dateFilter.start_date;
+        const endDateParam = urlParams.get('end_date') || dateFilter.end_date;
+        
+        if (startDateParam) {
+            startDateInput.value = startDateParam;
+        }
+        
+        if (endDateParam) {
+            endDateInput.value = endDateParam;
+        }
+        
+        dateFilterBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dateFilterDropdown.classList.toggle('active');
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (!dateFilterDropdown.contains(e.target) && e.target !== dateFilterBtn) {
+                dateFilterDropdown.classList.remove('active');
+            }
+        });
+        
+        document.querySelectorAll('.date-preset-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const days = parseInt(this.dataset.days);
+                if (!isNaN(days)) {
+                    const endDate = new Date();
+                    const startDate = new Date();
+                    startDate.setDate(endDate.getDate() - days);
+                    
+                    startDateInput.value = formatDateForInput(startDate);
+                    endDateInput.value = formatDateForInput(endDate);
+                }
+            });
+        });
+        
+        applyDateFilterBtn.addEventListener('click', function() {
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
+            
+            if (startDate && endDate) {
+                if (new Date(startDate) > new Date(endDate)) {
+                    alert('A data inicial não pode ser posterior à data final.');
+                    return;
+                }
+                
+                const currentUrl = new URL(window.location.href);
+                
+                currentUrl.searchParams.delete('start_date');
+                currentUrl.searchParams.delete('end_date');
+                currentUrl.searchParams.delete('show_all');
+                
+                currentUrl.searchParams.set('start_date', startDate);
+                currentUrl.searchParams.set('end_date', endDate);
+                
+                // Preserve media type filter if it exists
+                const mediaType = urlParams.get('media_type');
+                if (mediaType) {
+                    currentUrl.searchParams.set('media_type', mediaType);
+                }
+                
+                window.location.href = currentUrl.toString();
+            } else {
+                alert('Por favor, selecione as datas inicial e final.');
+            }
+        });
+        
+        clearDateFilterBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            startDateInput.value = '';
+            endDateInput.value = '';
+            
+            const currentUrl = new URL(window.location.href);
+            
+            currentUrl.searchParams.delete('start_date');
+            currentUrl.searchParams.delete('end_date');
+            
+            currentUrl.searchParams.set('show_all', 'true');
+            
+            const mediaType = urlParams.get('media_type');
+            if (mediaType) {
+                currentUrl.searchParams.set('media_type', mediaType);
+            }
+            
+            window.location.href = currentUrl.toString();
+        });
+        
+        if (dateFilter.is_custom) {
+            const formattedStartDate = formatDateForDisplay(dateFilter.start_date);
+            const formattedEndDate = formatDateForDisplay(dateFilter.end_date);
+            
+            dateFilterText.textContent = `${formattedStartDate} - ${formattedEndDate}`;
+            dateFilterBtn.classList.add('active');
+        } else {
+            dateFilterText.textContent = 'Filtrar por Data';
+            dateFilterBtn.classList.remove('active');
+        }
+    }
+    
+    function loadChartPreferences() {
+        try {
+            const savedPreferences = localStorage.getItem('reportChartPreferences');
+            if (savedPreferences) {
+                const preferences = JSON.parse(savedPreferences);
+                
+                if (document.getElementById('stats-cards-toggle')) {
+                    document.getElementById('stats-cards-toggle').checked = preferences.stats !== false;
+                }
+                
+                if (document.getElementById('bar-chart-toggle')) {
+                    document.getElementById('bar-chart-toggle').checked = preferences.bar !== false;
+                }
+                
+                if (document.getElementById('pie-chart-toggle')) {
+                    document.getElementById('pie-chart-toggle').checked = preferences.pie !== false;
+                }
+                
+                if (document.getElementById('time-series-toggle')) {
+                    document.getElementById('time-series-toggle').checked = preferences.timeSeries !== false;
+                }
+                
+                updateChartVisibility();
+            }
+        } catch (error) {
+            console.error('Erro ao carregar preferências de gráficos:', error);
+        }
+    }
+    
+    function formatDateForDisplay(dateString) {
+        if (!dateString) return '';
+        
+        try {
+            const parts = dateString.split('-');
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        } catch (e) {
+            console.error('Erro ao formatar data:', e);
+            return dateString;
+        }
+    }
+    
+
+    function formatDateForInput(date) {
+        if (!date) return '';
+        
+        try {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            
+            return `${year}-${month}-${day}`;
+        } catch (e) {
+            console.error('Erro ao formatar data:', e);
+            return '';
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('report-date').textContent = new Date().toLocaleString('pt-BR');
+        
+        initCharts();
+        
+        initDateFilter();
+        
+        loadChartPreferences();
+        
+        document.querySelectorAll('.chart-toggle').forEach(toggle => {
+            toggle.addEventListener('change', updateChartVisibility);
+        });
+        
+        document.getElementById('export-pdf-btn').addEventListener('click', generatePDF);
+        
+        window.addEventListener('resize', function() {
+            if (classesChart) classesChart.resize();
+            if (distributionChart) distributionChart.resize();
+            if (timeSeriesChart) timeSeriesChart.resize();
+        });
+
+        const mediaTypeFilter = document.getElementById('media-type-filter');
+        const urlParams = new URLSearchParams(window.location.search);
+        const mediaTypeParam = urlParams.get('media_type');
+
+        if (mediaTypeParam) {
+            mediaTypeFilter.value = mediaTypeParam;
+        }
+
+        mediaTypeFilter.addEventListener('change', function() {
+            const currentUrl = new URL(window.location.href);
+            
+            currentUrl.searchParams.delete('media_type');
+            
+            if (this.value !== 'all') {
+                currentUrl.searchParams.set('media_type', this.value);
+            }
+            
+            window.location.href = currentUrl.toString();
+        });
+    });
+</script>
+{% endblock %}
