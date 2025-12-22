@@ -114,8 +114,8 @@
                         Dashboard
                     </a>
 
-                    <a href="/relatorios" class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium gap-2
-                    {% if request.endpoint == 'relatorios' %}
+                    <a href="{% url 'dashboard_relatorios:relatorios' %}" class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium gap-2
+                    {% if request.resolver_match.view_name == 'dashboard_relatorios:relatorios' %}
                         bg-primary/10 text-primary
                     {% else %}
                         text-gray-600 hover:bg-gray-100
