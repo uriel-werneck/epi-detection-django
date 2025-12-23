@@ -66,7 +66,7 @@
                             class="absolute right-0 mt-1 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
                         >
                             <div class="py-1">
-                                {% url 'dashboard_upload:upload' type='upload-imagem' as upload_imagem_url %}
+                                {% url 'dashboard:upload' type='upload-imagem' as upload_imagem_url %}
 
                                 <a 
                                     href="{{ upload_imagem_url }}"
@@ -83,7 +83,7 @@
                                     </div>
                                 </a>
                                 
-                                {% url 'dashboard_upload:upload' type='upload-video' as upload_video_url%}
+                                {% url 'dashboard:upload' type='upload-video' as upload_video_url%}
 
                                 <a 
                                     href="{{ upload_video_url }}"
@@ -103,8 +103,8 @@
                         </div>
                     </div>
 
-                    <a href="{% url 'dashboard_home:home' %}" class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium gap-2
-                    {% if request.resolver_match.view_name == 'dashboard_home:home' %}
+                    <a href="{% url 'dashboard:home' %}" class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium gap-2
+                    {% if request.resolver_match.view_name == 'dashboard:home' %}
                         bg-primary/10 text-primary
                     {% else %}
                         text-gray-600 hover:bg-gray-100
@@ -114,8 +114,8 @@
                         Dashboard
                     </a>
 
-                    <a href="{% url 'dashboard_relatorios:relatorios' %}" class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium gap-2
-                    {% if request.resolver_match.view_name == 'dashboard_relatorios:relatorios' %}
+                    <a href="{% url 'dashboard:relatorios' %}" class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium gap-2
+                    {% if request.resolver_match.view_name == 'dashboard:relatorios' %}
                         bg-primary/10 text-primary
                     {% else %}
                         text-gray-600 hover:bg-gray-100
@@ -155,7 +155,7 @@
                                     <p class="text-xs text-gray-500 truncate">{{ current_user.email }}</p>
                                 </div>
                                 
-                                <a href="{% url 'dashboard_minhas_deteccoes:deteccoes' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {% if request.endpoint == 'minhas_deteccoes' %}bg-primary/10 text-primary{% endif %}">
+                                <a href="{% url 'dashboard:minhas_deteccoes' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {% if request.endpoint == 'minhas_deteccoes' %}bg-primary/10 text-primary{% endif %}">
                                     <div class="flex items-center gap-2">
                                         <i data-lucide="list" class="h-4 w-4"></i>
                                         Minhas Detecções

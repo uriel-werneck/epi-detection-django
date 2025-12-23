@@ -17,7 +17,7 @@
         <div class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
             <h3 class="text-lg font-medium mb-4">Selecione uma Imagem</h3>
             
-            <form action="{% url 'dashboard_upload:upload' type='upload-imagem' %}" method="post" enctype="multipart/form-data" class="space-y-4">
+            <form action="{% url 'dashboard:upload' type='upload-imagem' %}" method="post" enctype="multipart/form-data" class="space-y-4">
                 {% csrf_token %}
                 <div class="grid w-full max-w-sm items-center gap-1.5">
                     <label for="image" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
@@ -56,7 +56,7 @@
                 />
             </div>
             <div class="mt-4 flex justify-between">
-                <a href="{% url 'dashboard_home:home' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                <a href="{% url 'dashboard:home' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
                     <i data-lucide="bar-chart" class="h-4 w-4 mr-2"></i>
                     Ver no Dashboard
                 </a>
