@@ -17,3 +17,7 @@ def minhas_deteccoes(request):
 
 def relatorios(request):
     return render(request, 'dashboard/relatorios.html')
+
+def get_detection_image(request, detection_id):
+    context = {}
+    return render(request, 'dashboard/minhas-deteccoes.html', context)
