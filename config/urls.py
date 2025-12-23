@@ -19,10 +19,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('pages.urls', namespace='pages')),
-    path('', include('accounts.urls', namespace='accounts')),
-    path('home/', include('dashboard.urls_home', namespace='dashboard_home')),
-    path('relatorios/', include('dashboard.urls_relatorios', namespace='dashboard_relatorios')),
-    path('minhas-deteccoes/', include('dashboard.urls_minhas_deteccoes', namespace='dashboard_minhas_deteccoes')),
-    path('dashboard/', include('dashboard.urls_upload', namespace='dashboard_upload'))
+    path('', include('pages.urls')),
+    path('', include('accounts.urls')),
+    path('', include('dashboard.urls'))
 ]
