@@ -134,7 +134,7 @@
                             type="button"
                         >
                             <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center">
-                                <span class="text-sm font-medium">{{ current_user.nome|first|upper }}</span>
+                                <span class="text-sm font-medium">{{ user.nome|first|upper }}</span>
                             </div>
                         </button>
                         
@@ -151,8 +151,8 @@
                         >
                             <div class="py-1">
                                 <div class="px-4 py-2 text-sm text-gray-700 border-b">
-                                    <p class="font-medium">{{ current_user.nome }} {{ current_user.sobrenome }}</p>
-                                    <p class="text-xs text-gray-500 truncate">{{ current_user.email }}</p>
+                                    <p class="font-medium">{{ user.nome }} {{ user.sobrenome }}</p>
+                                    <p class="text-xs text-gray-500 truncate">{{ user.email }}</p>
                                 </div>
                                 
                                 <a href="{% url 'dashboard:minhas_deteccoes' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {% if request.endpoint == 'minhas_deteccoes' %}bg-primary/10 text-primary{% endif %}">
