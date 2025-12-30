@@ -12,3 +12,43 @@ def get_detected_classes(detections):
             if cls and cls in TRANSLATIONS.values():
                 class_counts[cls] = class_counts.get(cls, 0) + 1
     return class_counts
+
+
+def get_time_series_data(detections, start_date=None, end_date=None):
+    if end_date is None:
+        end_date = datetime.now().date()
+    if start_date is None:
+        start_date = end_date - timedelta(days=6)
+
+    days_diff = max((end_date - start_date).days, 1)
+
+    formatted_dates = [(start_date + timedelta(days=i)).strftime('%d/%m/%Y') for i in range(days_diff + 1)]
+    detections_data = [0] * len(formatted_dates)
+    uploads_data = [0] * len(formatted_dates)
+
+    queryset = detections.filter(
+        timestamp__date__gte=start_date,
+        timestamp__date__lte=end_date
+    ).values('timestamp__date').annotate(
+        total_detections=Sum('quantity'),
+        upload_count=Count('id')
+    ).order_by('timestamp__date')
+
+    daily_data = {}
+    for row in queryset:
+        display_date = row['timestamp__date'].strftime('%d/%m/%Y')
+        daily_data[display_date] = {
+            'detections': row['total_detections'] or 0,
+            'uploads': row['upload_count'] or 0
+        }
+
+    for i, date_str in enumerate(formatted_dates):
+        if date_str in daily_data:
+            detections_data[i] = daily_data[date_str]['detections']
+            uploads_data[i] = daily_data[date_str]['uploads']
+
+    return {
+        "dates": formatted_dates,
+        "detections": detections_data,
+        "uploads": uploads_data
+    }
