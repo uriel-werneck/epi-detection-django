@@ -14,17 +14,16 @@
                     Preencha as informações abaixo para criar sua conta
                 </p>
             </div>
-            {% for message in messages %}
-                <div class="p-3 rounded-md
-                {% if category == 'error' %}
-                    bg-destructive/15 text-destructive
-                {% else %}
-                    bg-primary/15 text-primary
-                {% endif %}
-                ">
-                    {{ message }}
+
+            {% if form.errors %}
+                <div class="p-3 rounded-md bg-destructive/15 text-destructive">
+                    {% if form.email.errors %}
+                        {{ form.email.errors }}
+                    {% elif form.password2.errors %} 
+                        {{ form.password2.errors }}
+                    {% endif %}
                 </div>
-            {% endfor %}
+            {% endif %}
 
             <div class="grid gap-6">
                 <form method="POST" action="{% url 'accounts:register' %}" id="registerForm">
@@ -131,17 +130,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     IMask(document.getElementById('telefone'), {
         mask: '(00) 00000-0000'
-    });
-
-    const form = document.getElementById('registerForm');
-    form.addEventListener('submit', function(event) {
-        const senha = document.getElementById('senha').value;
-        const confirmarSenha = document.getElementById('confirmar_senha').value;
-        
-        if (senha !== confirmarSenha) {
-            event.preventDefault();
-            alert('As senhas não coincidem. Por favor, tente novamente.');
-        }
     });
 });
 </script>
