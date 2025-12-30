@@ -27,17 +27,17 @@
                 </p>
             </div>
 
-            {% for message in messages %}
-                <div class="p-3 rounded-md
-                    {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
-                        bg-destructive/15 text-destructive
-                    {% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
-                        bg-primary/15 text-primary
-                    {% endif %}
-                ">
-                    {{ message }}
+            {% if form.non_field_errors %}
+                <div class="p-3 rounded-md bg-destructive/15 text-destructive">
+                    {{ form.non_field_errors }}
                 </div>
-            {% endfor %}
+            {% elif messages %}
+                {% for message in messages %}
+                    <div class="p-3 rounded-md bg-primary/15 text-primary">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
 
             <div class="grid gap-6">
                 <form method="POST" action="{% url 'accounts:login' %}">
