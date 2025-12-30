@@ -1,10 +1,14 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from dashboard.services.detection import get_detection_stats
 
 # Create your views here.
 @login_required
 def home(request):
-    return render(request, 'dashboard/home.html')
+    context = {
+        'detection_stats': get_detection_stats(request.user)
+    }
+    return render(request, 'dashboard/home.html', context)
 
 @login_required
 def upload(request, type):
