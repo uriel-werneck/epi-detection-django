@@ -52,3 +52,20 @@ def get_time_series_data(detections, start_date=None, end_date=None):
         "detections": detections_data,
         "uploads": uploads_data
     }
+
+
+def get_detection_stats(user: User):
+    detections = user.detections.all()
+
+    total_images = detections.filter(upload_type='upload-image').count()
+    video_count = detections.filter(upload_type='upload-video').count()
+    detected_classes = get_detected_classes(detections)
+    time_series_data = get_time_series_data(detections)
+    
+    detection_stats = {
+        "total_images": total_images,
+        "video_count": video_count,
+        "detected_classes": detected_classes,
+        "time_series_data": time_series_data
+    }
+    return detection_stats
