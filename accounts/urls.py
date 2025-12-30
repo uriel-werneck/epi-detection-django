@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth.views import LoginView, LogoutView
 from .views import register
+from .forms import CustomAuthenticationForm
 
 app_name = 'accounts'
 
@@ -9,6 +10,7 @@ urlpatterns = [
         'login/',
         LoginView.as_view(
             template_name='accounts/login.html',
+            authentication_form=CustomAuthenticationForm,
             redirect_authenticated_user=True
         ),
         name='login'

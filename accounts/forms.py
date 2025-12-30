@@ -1,5 +1,6 @@
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import User
+from django import forms
 
 class UserRegisterForm(UserCreationForm):
     error_messages = {
@@ -8,8 +9,7 @@ class UserRegisterForm(UserCreationForm):
     }
 
     def clean_nome(self):
-        cleaned_data = super().clean()
-        nome = cleaned_data.get('nome')
+        nome = self.cleaned_data.get('nome')
         return nome.capitalize() if nome else nome
 
     def clean_sobrenome(self):
@@ -32,3 +32,9 @@ class UserRegisterForm(UserCreationForm):
             'password1',
             'password2'
         ]
+
+class CustomAuthenticationForm(AuthenticationForm):
+    error_messages = {
+        **AuthenticationForm.error_messages,
+        'invalid_login': 'e-mail ou senha incorretos',
+    }
