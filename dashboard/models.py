@@ -11,8 +11,8 @@ class Detection(models.Model):
     quantity = models.IntegerField(null=False, blank=False)
     detected_classes = models.TextField(null=False, blank=False)
     # Novos campos para armazenar imagens e vídeos no banco de dados
-    image_data = models.TextField(null=True, blank=True) # Base64 da imagem ou frame do vídeo
-    video_data = models.TextField(null=True, blank=True) # Base64 do vídeo (se aplicável)
+    image_data = models.ImageField(upload_to='detections/images/', null=True, blank=True)
+    video_data = models.FileField(upload_to='detections/videos/', null=True, blank=True)
     is_stored_in_db = models.BooleanField(default=False) # Indica se está armazenado no banco
 
     class Meta:
