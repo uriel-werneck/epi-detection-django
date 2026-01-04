@@ -14,3 +14,18 @@ def process_image_with_yolo(image):
     return class_names, boxes
 
 
+def draw_bounding_boxes(image, boxes, class_names=None):
+    for i, box in enumerate(boxes):
+        x1, y1, x2, y2 = map(int, box)
+
+        if class_names and i < len(class_names):
+            class_name = class_names[i]
+            label = f"{class_name}"
+
+            cv.rectangle(image, (x1, y1), (x2, y2), COLORS[class_name]['body'], 5)
+
+            (compr_texto, larg_texto), _ = cv.getTextSize(label, cv.FONT_HERSHEY_DUPLEX, 1.5, 2)
+            caixa_id = cv.rectangle(image, (x1, y1 - 29), (x1 + compr_texto, y1), COLORS[class_name]['body'], -1)
+            cv.putText(caixa_id, label, (x1, y1 - 3), cv.FONT_HERSHEY_DUPLEX, 1.5, COLORS[class_name]['text'], 2)
+            
+    return image
