@@ -45,12 +45,12 @@
             </div>
         </div>
 
-        {% if processed_image %}
+        {% if detection %}
         <div class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
             <h3 class="text-lg font-medium mb-4">Resultado da Detecção</h3>
             <div class="relative aspect-video overflow-hidden rounded-lg border">
                 <img 
-                    src="{% static 'results/' %}{{ processed_image }}" 
+                    src="{{ detection.image_data.url }}"
                     alt="Imagem Processada" 
                     class="object-contain w-full h-full"
                 />
@@ -60,7 +60,7 @@
                     <i data-lucide="bar-chart" class="h-4 w-4 mr-2"></i>
                     Ver no Dashboard
                 </a>
-                <a href="{% static 'results/' %}{{ processed_image }}" download class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                <a href="{{ detection.image_data.url }}" download class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
                     <i data-lucide="download" class="h-4 w-4 mr-2"></i>
                     Baixar Imagem
                 </a>
