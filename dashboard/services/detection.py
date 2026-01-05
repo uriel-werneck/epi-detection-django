@@ -7,7 +7,7 @@ from django.db.models import Sum, Count
 def get_detected_classes(detections):
     class_counts = {}
     for detection in detections:
-        classes = detection.detected_classes.split(',')
+        classes = detection.detected_classes
         for cls in classes:
             if cls and cls in TRANSLATIONS.values():
                 class_counts[cls] = class_counts.get(cls, 0) + 1
@@ -57,7 +57,7 @@ def get_time_series_data(detections, start_date=None, end_date=None):
 def get_detection_stats(user: User):
     detections = user.detections.all()
 
-    total_images = detections.filter(upload_type='upload-image').count()
+    total_images = detections.filter(upload_type='upload-imagem').count()
     video_count = detections.filter(upload_type='upload-video').count()
     detected_classes = get_detected_classes(detections)
     time_series_data = get_time_series_data(detections)
