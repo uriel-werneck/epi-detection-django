@@ -11,7 +11,7 @@ class Detection(models.Model):
     timestamp = models.DateTimeField(default=timezone.now)
     upload_type = models.CharField(max_length=20, null=False, blank=False)
     quantity = models.IntegerField(null=False, blank=False)
-    detected_classes = models.TextField(null=False, blank=False)
+    detected_classes = models.JSONField(default=list)
     image_data = models.ImageField(upload_to='detections/images/', null=True, blank=True)
     video_data = models.FileField(upload_to='detections/videos/', null=True, blank=True)
     is_stored_in_db = models.BooleanField(default=False)
