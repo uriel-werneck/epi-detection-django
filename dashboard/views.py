@@ -1,11 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
-from django.contrib import messages
 from .services.detection import get_detection_stats
 from .upload_config import UPLOAD_CONFIG
 from .models import Detection
 from django.urls import reverse
+from urllib.parse import urlencode
 
 
 # Create your views here.
@@ -31,19 +31,20 @@ def upload(request, type):
         form = form_class(request.POST, request.FILES)
         if form.is_valid():
             detection = service(request.user, form.cleaned_data)
-            messages.success(request, 'Imagem processada com sucesso! Clique em "Ver no Dashboard" para visualizar as estatísticas atualizadas.')
-            return redirect(f'{reverse('dashboard:upload', kwargs={'type': type})}?detection={detection.id}')
+            path = reverse('dashboard:upload', kwargs={'type': type})
+            query = urlencode({'detection': detection.id})
+            return redirect(f'{path}?{query}')
     else:
         form = form_class()
 
     detection_id = request.GET.get('detection')
     detection = None
-
     if detection_id:
-        detection = Detection.objects.filter(
+        detection = get_object_or_404(
+            Detection,
             id=detection_id,
             user=request.user
-        ).first()
+        )
 
     context = {
         'form': form,
