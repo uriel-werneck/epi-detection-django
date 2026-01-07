@@ -203,7 +203,7 @@
             <p class="text-muted-foreground">Visualize todas as suas detecções de EPIs realizadas</p>
         </div>
         <div class="flex items-center gap-2">
-            <a href="{{ url_for('upload', type='upload-imagem') }}" class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium gap-2 bg-primary text-white hover:bg-primary/90">
+            <a href="{% url 'dashboard:upload' type='upload-imagem' %}" class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium gap-2 bg-primary text-white hover:bg-primary/90">
                 <i data-lucide="plus" class="h-4 w-4"></i>
                 Nova Detecção
             </a>
@@ -212,7 +212,7 @@
 
     <div class="mt-6 rounded-lg border bg-card text-card-foreground shadow-sm p-4">
         <h3 class="text-lg font-medium mb-3">Filtros</h3>
-        <form action="{{ url_for('minhas_deteccoes') }}" method="get" class="filter-form">
+        <form action="{% url 'dashboard:minhas_deteccoes' %}" method="get" class="filter-form">
             <div class="filter-input">
                 <label for="date-filter" class="block text-sm font-medium mb-1">Data</label>
                 <input type="date" id="date-filter" name="date" value="{{ current_date_filter }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
@@ -234,7 +234,7 @@
                     Filtrar
                 </button>
                 
-                <a href="{{ url_for('minhas_deteccoes') }}" class="ml-2 inline-flex items-center px-3 py-2 rounded-md text-sm font-medium gap-2 text-gray-600 hover:bg-gray-100 border">
+                <a href="{% url 'dashboard:minhas_deteccoes' %}" class="ml-2 inline-flex items-center px-3 py-2 rounded-md text-sm font-medium gap-2 text-gray-600 hover:bg-gray-100 border">
                     <i data-lucide="x" class="h-4 w-4"></i>
                     Limpar
                 </a>
@@ -243,9 +243,9 @@
     </div>
 
     <div class="mt-6">
-        {% if detections %}
+        {% if detection_data %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {% for detection in detections %}
+                {% for detection, class_counts in detection_data %}
                     <div class="detection-card rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
                         <div class="relative">
                             {% if detection.is_video %}
@@ -257,10 +257,10 @@
                             
                             {% if detection.file_exists %}
                                 <img 
-                                    src="{{ url_for('get_detection_image', detection_id=detection.id) }}" 
+                                    src="{% url 'dashboard:get_detection_image' detection_id=detection.id %}" 
                                     alt="Detecção {{ detection.id }}" 
                                     class="detection-image cursor-pointer"
-                                    onclick="openImageModal('{{ url_for('get_detection_image', detection_id=detection.id) }}', '{{ detection.original_filename }}')"
+                                    onclick="openImageModal('{% url 'dashboard:get_detection_image' detection.id %}', '{{ detection.original_filename }}')"
                                 >
                             {% else %}
                                 <div class="detection-image bg-gray-100 flex items-center justify-center">
@@ -283,29 +283,20 @@
                             <div class="mb-3">
                                 <p class="text-sm text-gray-500 mb-1">Classes detectadas: {{ detection.quantity }}</p>
                                 <div class="flex flex-wrap">
-                                    {% set class_counts = {} %}
-                                    {% for class in detection.classes %}
-                                        {% if class %}
-                                            {% if class in class_counts %}
-                                                {% set _ = class_counts.update({class: class_counts[class] + 1}) %}
-                                            {% else %}
-                                                {% set _ = class_counts.update({class: 1}) %}
-                                            {% endif %}
-                                        {% endif %}
-                                    {% endfor %}
-                                    
-                                    {% for class, count in class_counts.items() %}
-                                        <span class="badge badge-{{ ['blue', 'purple', 'green', 'yellow', 'orange', 'red'][loop.index0 % 6] }}">
-                                            {{ class }}: {{ count }}
+                                    {% for class_name, count in class_counts %}
+                                        {% cycle 'blue' 'purple' 'green' 'yellow' 'orange' 'red' as badge_color silent %}
+                                        <span class="badge badge-{{ badge_color }}">
+                                            {{ class_name }}: {{ count }}
                                         </span>
                                     {% endfor %}
+                                    {% resetcycle %}
                                 </div>
                             </div>
                             
                             {% if detection.file_exists %}
                                 {% if detection.is_video %}
                                     <a 
-                                        href="{{ url_for('view_video_detection', detection_id=detection.id) }}"
+                                        href="{% url 'dashboard:video_detection' detection_id=detection.id %}"
                                         class="w-full inline-flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium gap-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
                                     >
                                         <i data-lucide="play" class="h-4 w-4"></i>
@@ -314,7 +305,7 @@
                                 {% else %}
                                     <button 
                                         class="w-full inline-flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium gap-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                        onclick="openImageModal('{{ url_for('get_detection_image', detection_id=detection.id) }}', '{{ detection.original_filename }}')"
+                                        onclick="openImageModal('{% url 'dashboard:get_detection_image' detection_id=detection.id %}', '{{ detection.original_filename }}')"
                                     >
                                         <i data-lucide="maximize" class="h-4 w-4"></i>
                                         Ver Detalhes
@@ -326,10 +317,10 @@
                 {% endfor %}
             </div>
             
-            {% if pagination.pages > 1 %}
+            {% if pagination.num_pages > 1 %}
                 <div class="pagination">
-                    {% if pagination.has_prev %}
-                        <a href="{{ url_for('minhas_deteccoes', page=pagination.prev_num, date=current_date_filter, class=current_class_filter) }}" class="pagination-item">
+                    {% if pagination.has_previous %}
+                        <a href="{% url 'dashboard:minhas_deteccoes' page=pagination.prev_num date=current_date_filter class=current_class_filter %}" class="pagination-item">
                             <i data-lucide="chevron-left" class="h-4 w-4"></i>
                         </a>
                     {% else %}
@@ -338,12 +329,12 @@
                         </span>
                     {% endif %}
                     
-                    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% for page_num in iter_pages %}
                         {% if page_num %}
                             {% if page_num == pagination.page %}
                                 <span class="pagination-item pagination-active">{{ page_num }}</span>
                             {% else %}
-                                <a href="{{ url_for('minhas_deteccoes', page=page_num, date=current_date_filter, class=current_class_filter) }}" class="pagination-item">{{ page_num }}</a>
+                                <a href="{% url 'dashboard:minhas_deteccoes' page=page_num date=current_date_filter class=current_class_filter %}" class="pagination-item">{{ page_num }}</a>
                             {% endif %}
                         {% else %}
                             <span class="pagination-item">...</span>
@@ -351,7 +342,7 @@
                     {% endfor %}
                     
                     {% if pagination.has_next %}
-                        <a href="{{ url_for('minhas_deteccoes', page=pagination.next_num, date=current_date_filter, class=current_class_filter) }}" class="pagination-item">
+                        <a href="{% url 'dashboard:minhas_deteccoes' page=pagination.next_num date=current_date_filter class=current_class_filter %}" class="pagination-item">
                             <i data-lucide="chevron-right" class="h-4 w-4"></i>
                         </a>
                     {% else %}
@@ -367,7 +358,7 @@
                 <i data-lucide="image-off" class="empty-state-icon"></i>
                 <h3 class="text-lg font-medium mb-2">Nenhuma detecção encontrada</h3>
                 <p class="text-gray-500 mb-4">Você ainda não realizou nenhuma detecção ou não há resultados para os filtros aplicados.</p>
-                <a href="{{ url_for('upload', type='upload-imagem') }}" class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium gap-2 bg-primary text-white hover:bg-primary/90">
+                <a href="{% url 'dashboard:upload' type='upload-imagem' %}" class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium gap-2 bg-primary text-white hover:bg-primary/90">
                     <i data-lucide="plus" class="h-4 w-4"></i>
                     Realizar Nova Detecção
                 </a>
