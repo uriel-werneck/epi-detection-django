@@ -1,5 +1,8 @@
+from django.core.paginator import Page
+
+
 def iter_pages(current_page: int, total: int, left_edge=1, right_edge=1, left_current=2, right_current=2) -> list:
-    '''Return a formated list of page numbers to display in pagination'''
+    '''Returns a formated list of page numbers to display in pagination'''
 
     if current_page <= 0: current_page = 1
     if current_page > total: current_page = total
@@ -18,5 +21,21 @@ def iter_pages(current_page: int, total: int, left_edge=1, right_edge=1, left_cu
 
     # define and return page list
     page_list = left_part + [current_page] + right_part
-    print(page_list)
     return page_list
+
+
+def get_detection_data(page_obj: Page) -> list[tuple[str, int]]:
+    '''Returns a list of tuples containing detection objects and their class counts.'''
+
+    detection_data = []
+
+    for detection_object in page_obj:
+        detected_classes = detection_object.detected_classes
+        class_counts = []
+
+        for class_name in set(detected_classes):
+            class_counts.append((class_name, detected_classes.count(class_name)))
+        
+        detection_data.append((detection_object, class_counts))
+    
+    return detection_data
