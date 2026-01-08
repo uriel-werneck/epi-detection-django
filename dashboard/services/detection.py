@@ -2,6 +2,8 @@ from accounts.models import User
 from dashboard.constants import TRANSLATIONS
 from datetime import datetime, timedelta
 from django.db.models import Sum, Count
+from dashboard.models import Detection
+from typing import Iterable
 
 
 def get_detected_classes(detections):
@@ -69,3 +71,15 @@ def get_detection_stats(user: User):
         "time_series_data": time_series_data
     }
     return detection_stats
+
+
+def get_all_classes(detections: Iterable[Detection], sort=True) -> list[str]:
+    '''Iterate over detections and return a list of all detected classes.'''
+
+    all_classes = set()
+
+    for detection in detections:
+        all_classes.update(detection.detected_classes)
+
+    result = list(all_classes)
+    return sorted(result) if sort else result

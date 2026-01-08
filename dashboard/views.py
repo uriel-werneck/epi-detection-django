@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
-from .services.detection import get_detection_stats
+from django.http import Http404, FileResponse
+from .services.detection import get_detection_stats, get_all_classes
 from .upload_config import UPLOAD_CONFIG
 from .models import Detection
 from django.urls import reverse
@@ -59,28 +59,29 @@ def upload(request, type):
 
 @login_required
 def minhas_deteccoes(request):
-    all_objects = request.user.detections.all().order_by('-timestamp')
-
-    page_number = request.GET.get('page') or 1
+    page_number = request.GET.get('page', 1)
     date_filter = request.GET.get('date')
     class_filter = request.GET.get('class')
+
+    all_objects = request.user.detections.all().order_by('-timestamp')
+    all_classes = get_all_classes(all_objects)
+
+    if date_filter:
+        all_objects = all_objects.filter(timestamp__date=date_filter)
+
+    if class_filter:
+        all_objects = [obj for obj in all_objects if class_filter in obj.detected_classes]
 
     paginator = Paginator(all_objects, 9)
     page_obj = paginator.get_page(page_number)
 
-    pagination = page_obj
-    all_classes = None
-    date_filter = None
-    class_filter = None
-    pagination_list = iter_pages(int(page_number), paginator.num_pages)
-
     context = {
         'detection_data': get_detection_data(page_obj),
-        'pagination': pagination,
+        'pagination': page_obj,
         'all_classes': all_classes,
         'current_date_filter': date_filter,
         'current_class_filter': class_filter,
-        'iter_pages': pagination_list
+        'iter_pages': iter_pages(int(page_number), paginator.num_pages)
     }
 
     return render(request, 'dashboard/minhas-deteccoes.html', context)
