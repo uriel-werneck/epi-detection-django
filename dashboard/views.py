@@ -95,3 +95,21 @@ def relatorios(request):
 def get_detection_image(request, detection_id):
     context = {}
     return render(request, 'dashboard/minhas-deteccoes.html', context)
+
+
+@login_required
+def download_image(request, detection_id):
+    detection = get_object_or_404(
+        Detection,
+        user=request.user,
+        id=detection_id,
+    )
+
+    if not detection.image_data:
+        raise Http404('File not found')
+    
+    return FileResponse(
+        detection.image_data.open('rb'),
+        as_attachment=True,
+        filename=detection.file_name
+    )

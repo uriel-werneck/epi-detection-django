@@ -60,7 +60,7 @@
                     <i data-lucide="bar-chart" class="h-4 w-4 mr-2"></i>
                     Ver no Dashboard
                 </a>
-                <a href="{{ detection.image_data.url }}" download class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                <a href="{% url 'dashboard:download_imagem' detection_id=detection.id %}" download class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
                     <i data-lucide="download" class="h-4 w-4 mr-2"></i>
                     Baixar Imagem
                 </a>
