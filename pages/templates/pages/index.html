@@ -333,5 +333,13 @@
     
 
     <script src="{% static 'pages/js/script.js' %}"></script>
+    <script>
+        const video = document.getElementById('epiVideo');
+
+        video.addEventListener('canplay', () => {
+            video.classList.remove('opacity-0');
+            video.classList.add('opacity-100');
+        });
+    </script>
 </body>
 </html>
