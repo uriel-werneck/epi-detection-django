@@ -59,9 +59,12 @@ def upload(request, type):
 
 @login_required
 def minhas_deteccoes(request):
-    page_number = request.GET.get('page', 1)
-    date_filter = request.GET.get('date')
-    class_filter = request.GET.get('class')
+    try:
+        page_number = int(request.GET.get('page'))
+    except:
+        page_number = 1
+    date_filter = request.GET.get('date') or None
+    class_filter = request.GET.get('class') or None
 
     all_objects = request.user.detections.all().order_by('-timestamp')
     all_classes = get_all_classes(all_objects)
@@ -86,7 +89,7 @@ def minhas_deteccoes(request):
         'all_classes': all_classes,
         'current_date_filter': date_filter,
         'current_class_filter': class_filter,
-        'iter_pages': iter_pages(int(page_number), paginator.num_pages)
+        'iter_pages': iter_pages(page_number, paginator.num_pages)
     }
 
     return render(request, 'dashboard/minhas-deteccoes.html', context)
