@@ -73,12 +73,23 @@
                             </button>
                         </div>
                     </div>
-                    <div class="relative h-[300px] md:h-[400px]">
-                        <img 
-                            src="https://via.placeholder.com/500x400" 
-                            alt="Sistema de detecção de EPI em ação"
-                            class="w-full h-full object-cover rounded-lg shadow-lg"
-                        />
+                    <div class="relative w-full flex justify-center">
+                        <div class="w-[95%] max-w-xl rounded-lg shadow-lg overflow-hidden bg-black">
+                            <video
+                                id="epiVideo"
+                                class="w-full h-auto opacity-0 transition-opacity duration-300 ease-out"
+                                autoplay
+                                loop
+                                muted
+                                playsinline
+                                preload="auto"
+                                poster="{% static 'pages/images/epi_demo_poster.jpg' %}"
+                                disablepictureinpicture
+                            >
+                                <source src="{% static 'pages/videos/epi_demo.mp4' %}" type="video/mp4">
+                            </video>
+                        </div>
+                    </div>
                     </div>
                 </div>
             </div>
