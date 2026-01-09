@@ -320,7 +320,7 @@
             {% if pagination.paginator.num_pages > 1 %}
                 <div class="pagination">
                     {% if pagination.has_previous %}
-                        <a href="{% url 'dashboard:minhas_deteccoes'%}?page={{ pagination.previous_page_number }}&date={{ current_date_filter }}&class={{ current_class_filter }}" class="pagination-item">
+                        <a href="{% url 'dashboard:minhas_deteccoes'%}?page={{ pagination.previous_page_number }}{% if current_date_filter %}&date={{ current_date_filter }}{% elif current_class_filter %}&class={{ current_class_filter }}{% endif %}" class="pagination-item">
                             <i data-lucide="chevron-left" class="h-4 w-4"></i>
                         </a>
                     {% else %}
@@ -334,7 +334,7 @@
                             {% if page_num == pagination.number %}
                                 <span class="pagination-item pagination-active">{{ page_num }}</span>
                             {% else %}
-                                <a href="{% url 'dashboard:minhas_deteccoes' %}?page={{ page_num }}&date={{ current_date_filter }}&class={{ current_class_filter }}" class="pagination-item">{{ page_num }}</a>
+                                <a href="{% url 'dashboard:minhas_deteccoes' %}?page={{ page_num }}{% if current_date_filter %}&date={{ current_date_filter }}{% elif current_class_filter %}&class={{ current_class_filter }}{% endif %}" class="pagination-item">{{ page_num }}</a>
                             {% endif %}
                         {% else %}
                             <span class="pagination-item">...</span>
@@ -342,7 +342,7 @@
                     {% endfor %}
                     
                     {% if pagination.has_next %}
-                        <a href="{% url 'dashboard:minhas_deteccoes' %}?page={{ pagination.next_page_number }}&date={{ current_date_filter }}&class={{ current_class_filter }}" class="pagination-item">
+                        <a href="{% url 'dashboard:minhas_deteccoes' %}?page={{ pagination.next_page_number }}{% if current_date_filter %}&date={{ current_date_filter }}{% elif current_class_filter %}&class={{ current_class_filter }}{% endif %}" class="pagination-item">
                             <i data-lucide="chevron-right" class="h-4 w-4"></i>
                         </a>
                     {% else %}
