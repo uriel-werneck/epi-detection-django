@@ -69,6 +69,11 @@ def minhas_deteccoes(request):
     if date_filter:
         all_objects = all_objects.filter(timestamp__date=date_filter)
 
+    # # for postgre
+    # if class_filter:
+    #     all_objects = all_objects.filter(detected_classes__contains=[class_filter])
+
+    # for sqlite
     if class_filter:
         all_objects = [obj for obj in all_objects if class_filter in obj.detected_classes]
 
