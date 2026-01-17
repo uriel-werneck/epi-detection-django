@@ -1,12 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, FileResponse
-from .services.detection import get_detection_stats, get_all_classes
+from .services.detection import get_detection_stats, get_minhas_deteccoes_page_data
 from .upload_config import UPLOAD_CONFIG
 from .models import Detection
 from django.urls import reverse
 from urllib.parse import urlencode
-from django.core.paginator import Paginator
 from .utils.pagination import iter_pages
 from .utils.pagination import get_detection_data
 
@@ -59,25 +58,16 @@ def upload(request, type):
 
 @login_required
 def minhas_deteccoes(request):
-    try:
-        page_number = int(request.GET.get('page'))
-    except:
-        page_number = 1
+    page_number = request.GET.get('page', 1)
     date_filter = request.GET.get('date') or None
     class_filter = request.GET.get('class') or None
 
-    all_objects = request.user.detections.all().order_by('-timestamp')
-    all_classes = get_all_classes(all_objects)
-
-    if date_filter:
-        all_objects = all_objects.filter(timestamp__date=date_filter)
-
-    # postgre only
-    if class_filter:
-        all_objects = all_objects.filter(detected_classes__contains=[class_filter])
-
-    paginator = Paginator(all_objects, 9)
-    page_obj = paginator.get_page(page_number)
+    page_obj, all_classes = get_minhas_deteccoes_page_data(
+        user=request.user,
+        page_number=page_number,
+        date_filter=date_filter,
+        class_filter=class_filter
+    )
 
     context = {
         'detection_data': get_detection_data(page_obj),
@@ -85,7 +75,7 @@ def minhas_deteccoes(request):
         'all_classes': all_classes,
         'current_date_filter': date_filter,
         'current_class_filter': class_filter,
-        'iter_pages': iter_pages(page_number, paginator.num_pages)
+        'iter_pages': iter_pages(page_number, page_obj.paginator.num_pages)
     }
 
     return render(request, 'dashboard/minhas-deteccoes.html', context)

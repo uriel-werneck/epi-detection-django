@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 from django.db.models import Sum, Count
 from dashboard.models import Detection
 from typing import Iterable
+from django.core.paginator import Page, Paginator
+from dashboard.constants import IMAGES_PER_PAGE
 
 
 def count_detected_classes(detections):
@@ -83,3 +85,21 @@ def get_all_classes(detections: Iterable[Detection], sort=True) -> list[str]:
 
     result = list(all_classes)
     return sorted(result) if sort else result
+
+
+def get_minhas_deteccoes_page_data(*, user: User, page_number: int, date_filter: str, class_filter: str) -> tuple[Page, list[str]]:
+    '''Return a paginated Page of user detections and a list of all available detection classes.'''
+
+    all_detections = user.detections.all().order_by('-timestamp')
+    all_classes = get_all_classes(all_detections)
+
+    qs = all_detections
+    if date_filter:
+        qs = qs.filter(timestamp__date=date_filter)
+    if class_filter: # postgre only
+        qs = qs.filter(detected_classes__contains=[class_filter])
+
+    paginator = Paginator(qs, IMAGES_PER_PAGE)
+    page_obj = paginator.get_page(page_number)
+
+    return page_obj, all_classes
