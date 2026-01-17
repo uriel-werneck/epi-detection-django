@@ -6,7 +6,7 @@ from dashboard.models import Detection
 from typing import Iterable
 
 
-def get_detected_classes(detections):
+def count_detected_classes(detections):
     class_counts = {}
     for detection in detections:
         classes = detection.detected_classes
@@ -61,7 +61,7 @@ def get_detection_stats(user: User):
 
     total_images = detections.filter(upload_type='upload-imagem').count()
     video_count = detections.filter(upload_type='upload-video').count()
-    detected_classes = get_detected_classes(detections)
+    detected_classes = count_detected_classes(detections)
     time_series_data = get_time_series_data(detections)
     
     detection_stats = {
