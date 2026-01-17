@@ -4,6 +4,11 @@ from django.core.paginator import Page
 def iter_pages(current_page: int, total: int, left_edge=1, right_edge=1, left_current=2, right_current=2) -> list:
     '''Returns a formated list of page numbers to display in pagination'''
 
+    try:
+        current_page = int(current_page)
+    except (ValueError, TypeError):
+        current_page = 1
+
     if current_page <= 0: current_page = 1
     if current_page > total: current_page = total
 
