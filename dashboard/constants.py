@@ -28,3 +28,5 @@ COLORS = {
         'text': (255, 255, 255)
     }
 }
+
+IMAGES_PER_PAGE = 9
