@@ -2,4 +2,5 @@
 __pycache__/
 *.sqlite3
 media/detections/images/*
+media/detections/videos/*
 .env
