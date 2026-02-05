@@ -10,15 +10,12 @@
         <h1 class="text-3xl font-bold tracking-tight mb-4">Upload de Vídeo</h1>
         <p class="text-muted-foreground mb-8">Faça upload de um vídeo para análise de EPIs</p>
 
-        <form action="{% url 'dashboard:upload' type='upload-video' %}" method="post" enctype="multipart/form-data" class="space-y-6">
+        <form action="{% url 'dashboard:upload' type='upload-video' %}" method="post" enctype="multipart/form-data"
+            class="space-y-6">
             {% csrf_token %}
             <div class="border-2 border-dashed rounded-lg p-8 text-center">
-                <input type="file" 
-                       id="video-upload" 
-                       name="video" 
-                       accept="video/*" 
-                       class="hidden" 
-                       onchange="previewVideo(event)">
+                <input type="file" id="video-upload" name="video" accept="video/*" class="hidden"
+                    onchange="previewVideo(event)">
                 <label for="video-upload" class="cursor-pointer">
                     <div class="space-y-4">
                         <i data-lucide="upload-cloud" class="mx-auto h-12 w-12 text-gray-400"></i>
@@ -34,12 +31,13 @@
                 </div>
             </div>
 
-            <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
+            <button type="submit"
+                class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
                 Enviar Vídeo
             </button>
         </form>
 
-        {% if processed_video %}
+        {% if detection %}
         <div class="mt-8 space-y-6">
             <div class="bg-green-50 border border-green-200 rounded-md p-4">
                 <div class="flex">
@@ -49,7 +47,7 @@
                     <div class="ml-3">
                         <h3 class="text-sm font-medium text-green-800">Vídeo processado com sucesso!</h3>
                         <div class="mt-2 text-sm text-green-700">
-                            <p>Foram detectadas {{ max_objects }} classes no frame com mais detecções.</p>
+                            <p>Foram detectadas {{ detection.quantity }} classes no frame com mais detecções.</p>
                         </div>
                     </div>
                 </div>
@@ -57,35 +55,37 @@
 
             <div class="border rounded-md p-4">
                 <h3 class="text-lg font-medium mb-4">Resultado da Detecção</h3>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <h4 class="text-sm font-medium mb-2">Frame com mais detecções:</h4>
-                        {% if frame_image %}
-                        <img src="{% static 'results/frames/' %}{{ frame_image }}" alt="Frame com mais detecções" class="w-full rounded-md">
+                        {% if detection.image_data.url %}
+                        <img src="{{ detection.image_data.url }}" alt="Frame com mais detecções"
+                            class="w-full rounded-md">
                         {% endif %}
                     </div>
-                    
+
                     <div>
                         <h4 class="text-sm font-medium mb-2">Classes detectadas:</h4>
                         <ul class="list-disc pl-5 space-y-1">
-                            {% for class_name in detected_classes %}
+                            {% for class_name in detection.detected_classes %}
                             <li class="text-sm">{{ class_name }}</li>
                             {% endfor %}
                         </ul>
-                        
+
                         <div class="mt-4">
                             <h4 class="text-sm font-medium mb-2">Vídeo processado:</h4>
                             <video controls class="w-full rounded-md">
-                                <source src="{% static 'results/' %}{{ processed_video }}" type="video/mp4">
+                                <source src="{{ detection.video_data.url }}" type="video/mp4">
                                 Seu navegador não suporta a reprodução de vídeos.
                             </video>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="mt-4 flex justify-end">
-                    <a href="{% url 'dashboard:home' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                    <a href="{% url 'dashboard:home' %}"
+                        class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
                         Ver no Dashboard
                     </a>
                 </div>
@@ -96,18 +96,17 @@
 </div>
 
 <script>
-function previewVideo(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const url = URL.createObjectURL(file);
-        document.getElementById('preview').classList.remove('hidden');
-        const video = document.getElementById('preview-video');
-        video.src = url;
-        video.onload = function() {
-            URL.revokeObjectURL(url);
+    function previewVideo(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+            document.getElementById('preview').classList.remove('hidden');
+            const video = document.getElementById('preview-video');
+            video.src = url;
+            video.onload = function () {
+                URL.revokeObjectURL(url);
+            }
         }
     }
-}
 </script>
 {% endblock %}
-
