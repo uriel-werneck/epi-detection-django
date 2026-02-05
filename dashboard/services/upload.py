@@ -4,8 +4,14 @@ import cv2 as cv
 import numpy as np
 from .yolo import (
     process_image_with_yolo,
-    draw_bounding_boxes
+    draw_bounding_boxes,
+    process_video_with_classes
 )
+import tempfile
+import os
+from uuid import uuid4
+from django.conf import settings
+from django.core.files.base import ContentFile
 
 
 def handle_image_upload(user, cleaned_data):
@@ -35,6 +41,65 @@ def handle_image_upload(user, cleaned_data):
 
 
 def handle_video_upload(user, cleaned_data):
+    '''Orquestra o upload, processamento YOLO e persistência de vídeos no banco de dados.'''
+
     video = cleaned_data.get('video')
-    print(cleaned_data)
-    print(video)
+    if not video:
+        raise ValueError('Video not provided')
+        
+    # save uploaded video to a temp folder
+    temp_dir = tempfile.mkdtemp()
+    temp_video_path = os.path.join(temp_dir, video.name)
+
+    with open(temp_video_path, 'wb+') as destination:
+        for chunk in video.chunks():
+            destination.write(chunk)
+
+    # prepare output video path
+    unique_id = str(uuid4())
+    name, extension = os.path.splitext(video.name)
+    output_filename = f'processed_{name}_{unique_id}{extension}'
+    output_path = os.path.join(settings.MEDIA_ROOT, 'detections', 'videos', output_filename)
+
+    # process video
+    result_info = process_video_with_classes(
+        video_path=temp_video_path,
+        output_path=output_path
+    )
+
+    if not result_info:
+        raise RuntimeError('Error processing video!')
+    
+    # create detection instance
+    detection = Detection(
+        user=user,
+        file_name=video.name,
+        detection_data=result_info['detected_classes'],
+        upload_type='upload-video',
+        quantity = result_info['max_objects'],
+        detected_classes=result_info['detected_classes'],
+        is_stored_in_db = True
+    )
+
+    # attach processed video
+    with open(output_path, 'rb') as f:
+        detection.video_data.save(output_filename, ContentFile(f.read()), save=False)
+
+    # attach frame image
+    if result_info.get('frame_image_bytes'):
+        detection.image_data.save(
+            result_info['frame_filename'],
+            ContentFile(result_info['frame_image_bytes']),
+            save=False
+        )
+
+    detection.save()
+
+    # cleanup
+    try:
+        os.remove(temp_video_path)
+        os.rmdir(temp_dir)
+    except OSError:
+        pass
+
+    return detection
