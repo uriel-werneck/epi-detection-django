@@ -248,7 +248,7 @@
                 {% for detection, class_counts in detection_data %}
                     <div class="detection-card rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
                         <div class="relative">
-                            {% if detection.is_video %}
+                            {% if detection.video_data %}
                                 <div class="video-badge">
                                     <i data-lucide="video" class="h-3 w-3"></i>
                                     <span>Vídeo</span>
@@ -294,9 +294,9 @@
                             </div>
                             
                             {% if detection %}
-                                {% if detection.is_video %}
+                                {% if detection.video_data %}
                                     <a 
-                                        href="{% url 'dashboard:video_detection' detection_id=detection.id %}"
+                                        href="{{ detection.video_data.url }}"
                                         class="w-full inline-flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium gap-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
                                     >
                                         <i data-lucide="play" class="h-4 w-4"></i>
