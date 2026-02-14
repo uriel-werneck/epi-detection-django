@@ -11,7 +11,7 @@ import tempfile
 import os
 from uuid import uuid4
 from django.conf import settings
-from django.core.files.base import ContentFile
+from django.core.files.base import ContentFile, File
 
 
 def handle_image_upload(user, cleaned_data):
@@ -59,7 +59,8 @@ def handle_video_upload(user, cleaned_data):
     unique_id = str(uuid4())
     name, extension = os.path.splitext(video.name)
     output_filename = f'processed_{name}_{unique_id}{extension}'
-    output_path = os.path.join(settings.MEDIA_ROOT, 'detections', 'videos', output_filename)
+    output_dir = tempfile.mkdtemp()
+    output_path = os.path.join(output_dir, output_filename)
 
     # process video
     result_info = process_video_with_classes(
@@ -83,7 +84,11 @@ def handle_video_upload(user, cleaned_data):
 
     # attach processed video
     with open(output_path, 'rb') as f:
-        detection.video_data.save(output_filename, ContentFile(f.read()), save=False)
+        detection.video_data.save(
+            output_filename,
+            File(f),
+            save=False
+        )
 
     # attach frame image
     if result_info.get('frame_image_bytes'):
@@ -98,7 +103,9 @@ def handle_video_upload(user, cleaned_data):
     # cleanup
     try:
         os.remove(temp_video_path)
+        os.remove(output_path)
         os.rmdir(temp_dir)
+        os.rmdir(output_dir)
     except OSError:
         pass
 
