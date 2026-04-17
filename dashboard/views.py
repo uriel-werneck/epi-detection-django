@@ -8,6 +8,7 @@ from django.urls import reverse
 from urllib.parse import urlencode
 from .utils.pagination import iter_pages
 from .utils.pagination import get_detection_data
+from .services.report import get_relatorios_data
 
 
 # Create your views here.
@@ -83,7 +84,10 @@ def minhas_deteccoes(request):
 
 @login_required
 def relatorios(request):
-    return render(request, 'dashboard/relatorios.html')
+    context = {
+        'detection_stats': get_relatorios_data(request.user, request.GET)
+    }
+    return render(request, 'dashboard/relatorios.html', context)
 
 
 @login_required

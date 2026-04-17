@@ -30,3 +30,9 @@ COLORS = {
 }
 
 IMAGES_PER_PAGE = 9
+
+MEDIA_TYPE_CHOICES = (
+    ('all', 'All'),
+    ('image', 'Image'),
+    ('video', 'Video')
+)

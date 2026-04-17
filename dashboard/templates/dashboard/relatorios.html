@@ -531,8 +531,8 @@
 
                 {% load tz %}
 
-                <p class="report-meta">Gerado em: <span id="report-date">{% now 'd/m/Y H:i' %}</span></p>
-                <p class="report-meta">Usuário: {{ current_user.nome }} {{ current_user.sobrenome }}</p>
+                <p class="report-meta">Gerado em: <span id="report-date">{% now 'd/m/Y, H:i' %}</span></p>
+                <p class="report-meta">Usuário: {{ user.nome|title }} {{ user.sobrenome|title }}</p>
                 {% if detection_stats.date_filter.is_custom %}
                 <p class="report-meta">Período: {{ detection_stats.date_filter.start_date|default:'' }} a {{ detection_stats.date_filter.end_date|default:'' }}</p>
                 {% endif %}
@@ -599,7 +599,7 @@
 
 {{ detection_stats.detected_classes|json_script:"detected-classes-data" }}
 {{ detection_stats.time_series_data|json_script:"time-series-data" }}
-{{ detection_stats.date_filter|json_script:"date_filter" }}
+{{ detection_stats.date_filter|json_script:"date-filter" }}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
