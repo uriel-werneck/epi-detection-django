@@ -91,12 +91,6 @@ def relatorios(request):
 
 
 @login_required
-def get_detection_image(request, detection_id):
-    context = {}
-    return render(request, 'dashboard/minhas-deteccoes.html', context)
-
-
-@login_required
 def download_image(request, detection_id):
     detection = get_object_or_404(
         Detection,
