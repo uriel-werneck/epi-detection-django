@@ -96,8 +96,20 @@ def get_minhas_deteccoes_page_data(*, user: User, page_number: int, date_filter:
     qs = all_detections
     if date_filter:
         qs = qs.filter(timestamp__date=date_filter)
-    if class_filter: # postgre only
-        qs = qs.filter(detected_classes__contains=[class_filter])
+
+    '''
+    OBS:
+    - A 1ª opção de filtragem é para SQLite, que não suporta arrays.
+    - A 2ª opção (comentada) é para PostgreSQL, que suporta arrays nativamente. (mais eficiente)
+    '''
+
+    # filtragem para SQLlite (incompatível com arrays)
+    if class_filter:
+        qs = [d for d in qs if class_filter in d.detected_classes]
+
+    ## filtragem para PostgreSQL (compatível com arrays)
+    # if class_filter: 
+    #     qs = qs.filter(detected_classes__contains=[class_filter])
 
     paginator = Paginator(qs, IMAGES_PER_PAGE)
     page_obj = paginator.get_page(page_number)
