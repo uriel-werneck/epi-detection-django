@@ -24,6 +24,6 @@ class ReportFilterForm(forms.Form):
     show_all = forms.BooleanField(required=False)
     media_type = forms.ChoiceField(
         required=False,
-        choices=[('all', 'All'), ('image', 'Image'), ('video', 'Video')],
+        choices=MEDIA_TYPE_CHOICES,
         initial='all'
     )
